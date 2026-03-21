@@ -1,10 +1,13 @@
 use std::f32;
 
 use eframe::egui;
+use serde_json::Value;
+use crate::tree::render_tree;
 
 /// Update loop and states
 pub struct UnfurlApp {
     input: String,
+    parsed: Option<Value>,
     error: Option<String>,
 }
 
@@ -12,6 +15,7 @@ impl Default for UnfurlApp {
     fn default() -> Self {
         Self {
             input: String::new(),
+            parsed: None,
             error: None,
         }
     }
@@ -66,7 +70,17 @@ impl eframe::App for UnfurlApp {
                 egui::ScrollArea::vertical()
                     .id_salt("tree_scroll")
                     .show(ui, |ui| {
-                        ui.label("Tree renderer coming soon...");
+                        match &self.parsed {
+                            Some(value) => {
+                                render_tree(ui, None, value);
+                            }
+                            None => {
+                                ui.colored_label(
+                                    egui::Color32::from_rgb(120, 120, 120), 
+                                    "Paste JSON on the left and press Format ↵",
+                                );
+                            }
+                        }
                     });
             });
         });
@@ -86,13 +100,20 @@ impl eframe::App for UnfurlApp {
 impl UnfurlApp {
     fn format(&mut self) {
         match serde_json::from_str::<serde_json::Value>(&self.input) {
-            Ok(_) => self.error = None,
-            Err(e) => self.error = Some(format!("Invalid JSON: {e}")),
+            Ok(v) => {
+                self.parsed = Some(v);
+                self.error = None;
+            }
+            Err(e) => {
+                self.parsed = None;
+                self.error = Some(format!("Invalid JSON: {e}"));
+            }
         }
     }
 
     fn clear(&mut self) {
         self.input.clear();
+        self.parsed = None;
         self.error = None;
     }
 }

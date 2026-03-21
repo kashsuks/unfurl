@@ -1,4 +1,5 @@
 mod app;
+mod tree;
 
 use eframe::egui;
 use app::UnfurlApp;

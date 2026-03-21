@@ -7,8 +7,9 @@ use app::UnfurlApp;
 
 /// native entry
 #[cfg(not(target_arch = "wasm32"))]
-use eframe::egui;
 fn main() -> eframe::Result<()> {
+    use eframe::egui;
+
     env_logger::init();
 
     let native_options = eframe::NativeOptions {
@@ -55,7 +56,7 @@ fn main() {
                 canvas,
                 web_options,
                 Box::new(|cc| {
-                    theme::apply(&&cc.egui_ctx);
+                    theme::apply(&cc.egui_ctx);
                     Ok(Box::new(UnfurlApp::default()))
                 }),
             )

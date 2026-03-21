@@ -2,12 +2,12 @@ mod app;
 mod tree;
 mod theme;
 
-use eframe::egui;
 use app::UnfurlApp;
 
 
 /// native entry
 #[cfg(not(target_arch = "wasm32"))]
+use eframe::egui;
 fn main() -> eframe::Result<()> {
     env_logger::init();
 

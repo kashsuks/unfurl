@@ -1,7 +1,7 @@
 use std::f32;
 
 use eframe::egui;
-use serde_json::{Value, map};
+use serde_json::{Value};
 use crate::tree::render_tree;
 
 /// Stats from the parsed JSON data

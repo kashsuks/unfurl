@@ -1,5 +1,6 @@
 mod app;
 mod tree;
+mod theme;
 
 use eframe::egui;
 use app::UnfurlApp;
@@ -20,9 +21,13 @@ fn main() -> eframe::Result<()> {
     eframe::run_native(
         "Unfurl", 
         native_options, 
-        Box::new(|_cc| Ok(Box::new(UnfurlApp::default()))),
+        Box::new(|cc| {
+            theme::apply(&cc.egui_ctx);
+            Ok(Box::new(UnfurlApp::default()))
+        }),
     )
 }
+
 
 /// web entry
 #[cfg(target_arch = "wasm32")]
@@ -49,7 +54,10 @@ fn main() {
             .start(
                 canvas,
                 web_options,
-                Box::new(|_cc| Ok(Box::new(UnfurlApp::default()))),
+                Box::new(|cc| {
+                    theme::apply(&&cc.egui_ctx);
+                    Ok(Box::new(UnfurlApp::default()))
+                }),
             )
             .await
             .expect("Failed to start eframe");

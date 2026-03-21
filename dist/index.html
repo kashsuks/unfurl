@@ -13,14 +13,15 @@
       overflow: hidden;
       background: #12121a;
     }
-
     canvas {
       display: block;
+      width: 100%;
+      height: 100%;
     }
   </style>
 <link rel="modulepreload" href="/unfurl-da2762146ec15e47.js" crossorigin="anonymous" integrity="sha384-0q7ybxVJFbtQ/TmeZyGIBAmoDEUyd3b82E8ICZphKiq8udxiWU3GyXSeqPEgJZNT"><link rel="preload" href="/unfurl-da2762146ec15e47_bg.wasm" crossorigin="anonymous" integrity="sha384-xhgfXAmG9cibnlIfcn+KMTg5smvNBFINXMPUUeq9660iBjBzgQRb5xpKMRVUVUmL" as="fetch" type="application/wasm"></head>
 <body>
-  <! -- trunk injects wasm + js here -->
+  <canvas id="the_canvas_id"></canvas>
 
 <script type="module">
 import init, * as bindings from '/unfurl-da2762146ec15e47.js';

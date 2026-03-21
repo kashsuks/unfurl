@@ -1,6 +1,7 @@
 mod app;
 
-use app:UnfurlApp;
+use eframe::egui;
+use app::UnfurlApp;
 
 
 /// native entry
@@ -27,7 +28,7 @@ fn main() -> eframe::Result<()> {
 fn main() {
     use eframe::wasm_bindgen::JsCast as _;
 
-    eframe::WebLoger::init(log::LevelFilter::Debug).ok(); // panics to browser
+    eframe::WebLogger::init(log::LevelFilter::Debug).ok(); // panics to browser
 
     let web_options = eframe::WebOptions::default();
 
@@ -51,5 +52,5 @@ fn main() {
             )
             .await
             .expect("Failed to start eframe");
-    })
+    });
 }

@@ -1,8 +1,9 @@
 use std::f32;
 
 use eframe::egui;
-use serde_json::{Value};
-use crate::tree::render_tree;
+use serde_json::Value;
+
+use crate::tree::{render_tree, SearchNode};
 
 /// Stats from the parsed JSON data
 struct JsonStats {
@@ -46,8 +47,10 @@ fn max_depth(value: &Value, current: usize) -> usize {
 /// Update loop and states
 pub struct UnfurlApp {
     input: String,
+    search_query: String,
     parsed: Option<Value>,
     stats: Option<JsonStats>,
+    search: Option<SearchNode>,
     error: Option<String>,
 }
 
@@ -55,8 +58,10 @@ impl Default for UnfurlApp {
     fn default() -> Self {
         Self {
             input: String::new(),
+            search_query: String::new(),
             parsed: None,
             stats: None,
+            search: None,
             error: None,
         }
     }
@@ -74,6 +79,26 @@ impl eframe::App for UnfurlApp {
                 if ui.button("Clear").clicked() {
                     self.clear();
                 }
+
+                ui.separator();
+                ui.label("Search");
+                let search_changed = ui
+                    .add(
+                        egui::TextEdit::singleline(&mut self.search_query)
+                            .desired_width(180.0)
+                            .hint_text("key or value"),
+                    )
+                    .changed();
+
+                if search_changed {
+                    self.refresh_search();
+                }
+
+                if !self.search_query.is_empty() && ui.button("Reset Search").clicked() {
+                    self.search_query.clear();
+                    self.refresh_search();
+                }
+
                 if let Some(err) = &self.error {
                     ui.separator();
                     ui.colored_label(egui::Color32::from_rgb(220, 80, 80), err);
@@ -82,8 +107,16 @@ impl eframe::App for UnfurlApp {
                 if let Some(stats) = &self.stats {
                     ui.separator();
                     ui.colored_label(
-                        egui::Color32::from_rgb(140, 140, 170), 
+                        egui::Color32::from_rgb(140, 140, 170),
                         format!("nodes: {} depth: {}", stats.nodes, stats.depth),
+                    );
+                }
+
+                if let Some(search) = &self.search {
+                    ui.separator();
+                    ui.colored_label(
+                        egui::Color32::from_rgb(255, 220, 120),
+                        format!("matches {}", search.match_count),
                     );
                 }
             });
@@ -118,17 +151,15 @@ impl eframe::App for UnfurlApp {
                 ui.add_space(4.0);
                 egui::ScrollArea::vertical()
                     .id_salt("tree_scroll")
-                    .show(ui, |ui| {
-                        match &self.parsed {
-                            Some(value) => {
-                                render_tree(ui, None, value);
-                            }
-                            None => {
-                                ui.colored_label(
-                                    egui::Color32::from_rgb(120, 120, 120), 
-                                    "Paste JSON on the left and press Format ↵",
-                                );
-                            }
+                    .show(ui, |ui| match &self.parsed {
+                        Some(value) => {
+                            render_tree(ui, None, value, self.search.as_ref());
+                        }
+                        None => {
+                            ui.colored_label(
+                                egui::Color32::from_rgb(120, 120, 120),
+                                "Paste JSON on the left and press Format ↵",
+                            );
                         }
                     });
             });
@@ -141,7 +172,6 @@ impl eframe::App for UnfurlApp {
             if i.modifiers.ctrl && i.key_pressed(egui::Key::L) {
                 self.clear();
             }
-
         });
     }
 }
@@ -153,10 +183,12 @@ impl UnfurlApp {
                 self.stats = Some(JsonStats::compute(&v));
                 self.parsed = Some(v);
                 self.error = None;
+                self.refresh_search();
             }
             Err(e) => {
                 self.parsed = None;
                 self.stats = None;
+                self.search = None;
                 self.error = Some(format!("Invalid JSON: {e}"));
             }
         }
@@ -164,8 +196,18 @@ impl UnfurlApp {
 
     fn clear(&mut self) {
         self.input.clear();
+        self.search_query.clear();
         self.parsed = None;
         self.stats = None;
+        self.search = None;
         self.error = None;
+    }
+
+    fn refresh_search(&mut self) {
+        let query = self.search_query.trim();
+        self.search = self
+            .parsed
+            .as_ref()
+            .and_then(|value| (!query.is_empty()).then(|| SearchNode::build(None, value, query)));
     }
 }

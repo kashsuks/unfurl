@@ -46,7 +46,6 @@ fn apply_visuals(ctx: &egui::Context) {
     visuals.selection.bg_fill = egui::Color32::from_rgb(55, 75, 140);
     visuals.selection.stroke = egui::Stroke::new(1.0, egui::Color32::from_rgb(100, 130, 220));
 
-
     visuals.window_stroke = egui::Stroke::new(1.0, egui::Color32::from_rgb(40, 40, 60));
 
     ctx.set_visuals(visuals);

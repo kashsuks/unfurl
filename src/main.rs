@@ -1,9 +1,8 @@
 mod app;
-mod tree;
 mod theme;
+mod tree;
 
 use app::UnfurlApp;
-
 
 /// native entry
 #[cfg(not(target_arch = "wasm32"))]
@@ -20,15 +19,14 @@ fn main() -> eframe::Result<()> {
     };
 
     eframe::run_native(
-        "Unfurl", 
-        native_options, 
+        "Unfurl",
+        native_options,
         Box::new(|cc| {
             theme::apply(&cc.egui_ctx);
             Ok(Box::new(UnfurlApp::default()))
         }),
     )
 }
-
 
 /// web entry
 #[cfg(target_arch = "wasm32")]

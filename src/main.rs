@@ -1,4 +1,5 @@
 mod app;
+mod settings;
 mod theme;
 mod tree;
 
@@ -22,7 +23,7 @@ fn main() -> eframe::Result<()> {
         "Unfurl",
         native_options,
         Box::new(|cc| {
-            theme::apply(&cc.egui_ctx);
+            theme::apply(&cc.egui_ctx, theme::Theme::default());
             Ok(Box::new(UnfurlApp::default()))
         }),
     )
@@ -54,7 +55,7 @@ fn main() {
                 canvas,
                 web_options,
                 Box::new(|cc| {
-                    theme::apply(&cc.egui_ctx);
+                    theme::apply(&cc.egui_ctx, theme::Theme::default());
                     Ok(Box::new(UnfurlApp::default()))
                 }),
             )

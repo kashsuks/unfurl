@@ -3,6 +3,8 @@ use std::f32;
 use eframe::egui;
 use serde_json::Value;
 
+use crate::settings::render_settings;
+use crate::theme::{self, Theme};
 use crate::tree::{render_tree, SearchNode};
 
 /// Stats from the parsed JSON data
@@ -52,6 +54,8 @@ pub struct UnfurlApp {
     stats: Option<JsonStats>,
     search: Option<SearchNode>,
     error: Option<String>,
+    theme: Theme,
+    show_settings: bool,
 }
 
 impl Default for UnfurlApp {
@@ -63,64 +67,95 @@ impl Default for UnfurlApp {
             stats: None,
             search: None,
             error: None,
+            theme: Theme::default(),
+            show_settings: false,
         }
     }
 }
 
 impl eframe::App for UnfurlApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        theme::apply(ctx, self.theme);
+
         egui::TopBottomPanel::top("toolbar").show(ctx, |ui| {
             ui.horizontal(|ui| {
-                ui.heading("Unfurl");
-                ui.separator();
-                if ui.button("Format ↵").clicked() {
-                    self.format();
-                }
-                if ui.button("Clear").clicked() {
-                    self.clear();
-                }
-
-                ui.separator();
-                ui.label("Search");
-                let search_changed = ui
-                    .add(
-                        egui::TextEdit::singleline(&mut self.search_query)
-                            .desired_width(180.0)
-                            .hint_text("key or value"),
-                    )
-                    .changed();
-
-                if search_changed {
-                    self.refresh_search();
-                }
-
-                if !self.search_query.is_empty() && ui.button("Reset Search").clicked() {
-                    self.search_query.clear();
-                    self.refresh_search();
-                }
-
-                if let Some(err) = &self.error {
+                if self.show_settings {
+                    ui.heading("Settings");
+                } else {
+                    ui.heading("Unfurl");
                     ui.separator();
-                    ui.colored_label(egui::Color32::from_rgb(220, 80, 80), err);
+
+                    if ui.button("Format ↵").clicked() {
+                        self.format();
+                    }
+                    if ui.button("Clear").clicked() {
+                        self.clear();
+                    }
+
+                    ui.separator();
+                    ui.label("Search");
+                    let search_changed = ui
+                        .add(
+                            egui::TextEdit::singleline(&mut self.search_query)
+                                .desired_width(180.0)
+                                .hint_text("key or value"),
+                        )
+                        .changed();
+
+                    if search_changed {
+                        self.refresh_search();
+                    }
+
+                    if !self.search_query.is_empty() && ui.button("Reset Search").clicked() {
+                        self.search_query.clear();
+                        self.refresh_search();
+                    }
+
+                    if let Some(err) = &self.error {
+                        ui.separator();
+                        ui.colored_label(egui::Color32::from_rgb(220, 80, 80), err);
+                    }
+
+                    if let Some(stats) = &self.stats {
+                        ui.separator();
+                        ui.colored_label(
+                            egui::Color32::from_rgb(140, 140, 170),
+                            format!("nodes: {} depth: {}", stats.nodes, stats.depth),
+                        );
+                    }
+
+                    if let Some(search) = &self.search {
+                        ui.separator();
+                        ui.colored_label(
+                            egui::Color32::from_rgb(255, 220, 120),
+                            format!("matches {}", search.match_count),
+                        );
+                    }
                 }
 
-                if let Some(stats) = &self.stats {
-                    ui.separator();
-                    ui.colored_label(
-                        egui::Color32::from_rgb(140, 140, 170),
-                        format!("nodes: {} depth: {}", stats.nodes, stats.depth),
-                    );
-                }
-
-                if let Some(search) = &self.search {
-                    ui.separator();
-                    ui.colored_label(
-                        egui::Color32::from_rgb(255, 220, 120),
-                        format!("matches {}", search.match_count),
-                    );
-                }
+                // Gear button pinned to the right
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    let gear_label = if self.show_settings { "✕" } else { "⚙" };
+                    if ui.button(gear_label).clicked() {
+                        self.show_settings = !self.show_settings;
+                    }
+                });
             });
         });
+
+        if self.show_settings {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                let prev_theme = self.theme;
+                let back = render_settings(ui, &mut self.theme);
+                if self.theme != prev_theme {
+                    theme::apply(ctx, self.theme);
+                }
+                if back {
+                    self.show_settings = false;
+                }
+            });
+            return;
+        }
 
         egui::SidePanel::left("input_panel")
             .resizable(true)

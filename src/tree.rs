@@ -105,7 +105,6 @@ pub fn render_tree(
 
         Value::Array(arr) => {
             let label = branch_label(key, &format!("[{} items]", arr.len()), search);
-
             egui::CollapsingHeader::new(label)
                 .default_open(search.map_or(true, |node| node.subtree_match))
                 .show(ui, |ui| {
@@ -125,6 +124,9 @@ pub fn render_tree(
                     egui::Color32::from_rgb(100, 200, 120),
                     search.is_some_and(|node| node.value_match),
                 );
+                if ui.small_button("⎘").on_hover_text("Copy value").clicked() {
+                    ui.ctx().copy_text(s.clone());
+                }
             });
         }
 
@@ -137,6 +139,9 @@ pub fn render_tree(
                     egui::Color32::from_rgb(100, 180, 220),
                     search.is_some_and(|node| node.value_match),
                 );
+                if ui.small_button("⎘").on_hover_text("Copy value").clicked() {
+                    ui.ctx().copy_text(n.to_string());
+                }
             });
         }
 
@@ -149,6 +154,9 @@ pub fn render_tree(
                     egui::Color32::from_rgb(220, 150, 80),
                     search.is_some_and(|node| node.value_match),
                 );
+                if ui.small_button("⎘").on_hover_text("Copy value").clicked() {
+                    ui.ctx().copy_text(b.to_string());
+                }
             });
         }
 
@@ -161,6 +169,9 @@ pub fn render_tree(
                     egui::Color32::from_rgb(160, 100, 200),
                     search.is_some_and(|node| node.value_match),
                 );
+                if ui.small_button("⎘").on_hover_text("Copy value").clicked() {
+                    ui.ctx().copy_text("null".to_string());
+                }
             });
         }
     }

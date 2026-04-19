@@ -67,7 +67,7 @@ impl Default for UnfurlApp {
             stats: None,
             search: None,
             error: None,
-            theme: Theme::default(),
+            theme: crate::persist::load_theme(), 
             show_settings: false,
         }
     }
@@ -149,6 +149,7 @@ impl eframe::App for UnfurlApp {
                 let back = render_settings(ui, &mut self.theme);
                 if self.theme != prev_theme {
                     theme::apply(ctx, self.theme);
+                    crate::persist::save_theme(self.theme);
                 }
                 if back {
                     self.show_settings = false;

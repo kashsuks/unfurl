@@ -210,7 +210,6 @@ impl eframe::App for UnfurlApp {
                 
                 // file path (native)
                 if let Some(path) = &f.path {
-                    println!("{:#?}", i.raw.dropped_files);
                     return std::fs::read_to_string(path).ok();
                 }
 

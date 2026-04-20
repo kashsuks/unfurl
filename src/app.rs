@@ -267,6 +267,14 @@ impl eframe::App for UnfurlApp {
 
 impl UnfurlApp {
     fn format(&mut self) {
+        if self.input.trim().is_empty() {
+            self.parsed = None;
+            self.stats = None;
+            self.search = None;
+            self.error = Some("Invalid: Empty file".to_string());
+            return;
+        }
+
         match serde_json::from_str::<serde_json::Value>(&self.input) {
             Ok(v) => {
                 self.stats = Some(JsonStats::compute(&v));

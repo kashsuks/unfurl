@@ -201,6 +201,60 @@ impl eframe::App for UnfurlApp {
             });
         });
 
+        let dropped: Option<String> = ctx.input(|i| {
+            i.raw.dropped_files.iter().find_map(|f| {
+                // bytes exist case (web)
+                if let Some(bytes) = &f.bytes {
+                    return String::from_utf8(bytes.to_vec()).ok();
+                }
+                
+                // file path (native)
+                if let Some(path) = &f.path {
+                    println!("{:#?}", i.raw.dropped_files);
+                    return std::fs::read_to_string(path).ok();
+                }
+
+                None
+            })
+        });
+        if let Some(contents) = dropped {
+            self.input = contents;
+            self.format();
+        }
+
+        // drag-over fullscreen overlay
+        let is_hovering = ctx.input(|i| !i.raw.hovered_files.is_empty());
+        if is_hovering {
+            let screen = ctx.screen_rect();
+            let painter = ctx.layer_painter(egui::LayerId::new(
+                egui::Order::Foreground,
+                egui::Id::new("drop_overlay"),
+            ));
+
+            painter.rect_filled(screen, 0.0, egui::Color32::from_black_alpha(160));
+
+            let dash_color = if self.theme == Theme::Light {
+                egui::Color32::from_rgb(30, 30, 30)
+            } else {
+                egui::Color32::WHITE
+            };
+
+            let margin = 12.0;
+            let r = egui::Rect::from_min_max(
+                screen.min + egui::vec2(margin, margin),
+                screen.max - egui::vec2(margin, margin),
+            );
+            draw_dashed_rect(&painter, r, 16.0, 8.0, egui::Stroke::new(2.0, dash_color));
+
+            painter.text(
+                screen.center(),
+                egui::Align2::CENTER_CENTER,
+                "Drop JSON file",
+                egui::FontId::proportional(24.0),
+                dash_color
+            );
+        }
+
         ctx.input(|i| {
             if i.modifiers.ctrl && i.key_pressed(egui::Key::Enter) {
                 self.format();
@@ -245,5 +299,33 @@ impl UnfurlApp {
             .parsed
             .as_ref()
             .and_then(|value| (!query.is_empty()).then(|| SearchNode::build(None, value, query)));
+    }
+}
+
+fn draw_dashed_rect(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    dash_len: f32,
+    gap_len: f32,
+    stroke: egui::Stroke,
+) {
+    let step = dash_len + gap_len;
+
+    for &y in &[rect.min.y, rect.max.y] {
+        let mut x = rect.min.x;
+        while x < rect.max.x {
+            let end_x = (x + dash_len).min(rect.max.x);
+            painter.line_segment([egui::pos2(x, y), egui::pos2(end_x, y)], stroke);
+            x += step;
+        }
+    }
+
+    for &x in &[rect.min.x, rect.max.x] {
+        let mut y = rect.min.y;
+        while y < rect.max.y {
+            let end_y = (y + dash_len).min(rect.max.y);
+            painter.line_segment([egui::pos2(x, y), egui::pos2(x, end_y)], stroke);
+            y += step;
+        }
     }
 }

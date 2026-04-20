@@ -64,5 +64,5 @@ fn config_path() -> Option<std::path::PathBuf> {
 
 #[cfg(target_arch = "wasm32")]
 fn web_storage() -> Option<web_sys::Storage> {
-    web_sys::window()?.local_storage().ok()?;
+    web_sys::window()?.local_storage().ok()?
 }

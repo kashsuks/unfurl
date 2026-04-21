@@ -3,6 +3,7 @@ use std::f32;
 use eframe::egui;
 use serde_json::Value;
 
+use crate::diff::{compute_diff, render_diff_tree};
 use crate::settings::render_settings;
 use crate::theme::{self, Theme};
 use crate::tree::{render_tree, SearchNode};
@@ -56,6 +57,9 @@ pub struct UnfurlApp {
     error: Option<String>,
     theme: Theme,
     show_settings: bool,
+    diff_mode: bool,
+    diff_input_b: String,
+    diff_error: Option<String>,
 }
 
 impl Default for UnfurlApp {
@@ -67,8 +71,11 @@ impl Default for UnfurlApp {
             stats: None,
             search: None,
             error: None,
-            theme: crate::persist::load_theme(), 
+            theme: crate::persist::load_theme(),
             show_settings: false,
+            diff_mode: false,
+            diff_input_b: String::new(),
+            diff_error: None,
         }
     }
 }
@@ -133,11 +140,18 @@ impl eframe::App for UnfurlApp {
                     }
                 }
 
-                // Gear button pinned to the right
+                // gear button pinned to the right
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     let gear_label = if self.show_settings { "✕" } else { "⚙" };
                     if ui.button(gear_label).clicked() {
                         self.show_settings = !self.show_settings;
+                        self.diff_mode = false;
+                    }
+                    ui.separator();
+                    let diff_label = if self.diff_mode { "Diff ✕" } else { "Diff" };
+                    if ui.button(diff_label).clicked() {
+                        self.diff_mode = !self.diff_mode;
+                        self.show_settings = false;
                     }
                 });
             });
@@ -155,6 +169,102 @@ impl eframe::App for UnfurlApp {
                     self.show_settings = false;
                 }
             });
+            return;
+        }
+
+        if self.diff_mode {
+            // Left input A
+            egui::SidePanel::left("diff_input_a")
+                .resizable(true)
+                .default_width(300.0)
+                .min_width(150.0)
+                .show(ctx, |ui| {
+                    ui.add_space(6.0);
+                    ui.label("JSON A");
+                    ui.add_space(4.0);
+                    egui::ScrollArea::vertical()
+                        .id_salt("diff_scroll_a")
+                        .show(ui, |ui| {
+                            ui.add(
+                                egui::TextEdit::multiline(&mut self.input)
+                                    .desired_width(f32::INFINITY)
+                                    .desired_rows(40)
+                                    .hint_text("Paste first JSON here..."),
+                            );
+                        });
+                });
+
+            // Right input B
+            egui::SidePanel::right("diff_input_b")
+                .resizable(true)
+                .default_width(300.0)
+                .min_width(150.0)
+                .show(ctx, |ui| {
+                    ui.add_space(6.0);
+                    ui.label("JSON B");
+                    ui.add_space(4.0);
+                    egui::ScrollArea::vertical()
+                        .id_salt("diff_scroll_b")
+                        .show(ui, |ui| {
+                            ui.add(
+                                egui::TextEdit::multiline(&mut self.diff_input_b)
+                                    .desired_width(f32::INFINITY)
+                                    .desired_rows(40)
+                                    .hint_text("Paste second JSON here..."),
+                            );
+                        });
+                });
+
+            // Middle diff tree
+            egui::CentralPanel::default().show(ctx, |ui| {
+                ui.add_space(6.0);
+                ui.horizontal(|ui| {
+                    ui.label("Diff");
+                    ui.add_space(8.0);
+                    if ui.button("Compare").clicked() {
+                        self.diff_error = None;
+                        let a = serde_json::from_str::<Value>(&self.input);
+                        let b = serde_json::from_str::<Value>(&self.diff_input_b);
+                        match (a, b) {
+                            (Ok(a), Ok(b)) => {
+                                self.parsed = Some(Value::Array(vec![a.clone(), b.clone()]));
+                                // store both for diff — reuse parsed as a sentinel
+                                // we compute diff inline below using input strings
+                                let _ = (a, b);
+                            }
+                            (Err(_), _) => self.diff_error = Some("JSON A is invalid".to_string()),
+                            (_, Err(_)) => self.diff_error = Some("JSON B is invalid".to_string()),
+                        }
+                    }
+                });
+                ui.add_space(4.0);
+
+                if let Some(err) = &self.diff_error {
+                    ui.colored_label(egui::Color32::from_rgb(220, 80, 80), err);
+                    return;
+                }
+
+                let a = serde_json::from_str::<Value>(&self.input);
+                let b = serde_json::from_str::<Value>(&self.diff_input_b);
+
+                match (a, b) {
+                    (Ok(a), Ok(b)) => {
+                        egui::ScrollArea::vertical()
+                            .id_salt("diff_tree_scroll")
+                            .show(ui, |ui| {
+                                let diff = compute_diff(&a, &b);
+                                render_diff_tree(ui, &diff);
+                            });
+                    }
+                    _ => {
+                        ui.colored_label(
+                            egui::Color32::from_rgb(120, 120, 120),
+                            "Paste JSON in both panels and press Compare",
+                        );
+                    }
+                }
+            });
+
             return;
         }
 
@@ -207,7 +317,7 @@ impl eframe::App for UnfurlApp {
                 if let Some(bytes) = &f.bytes {
                     return String::from_utf8(bytes.to_vec()).ok();
                 }
-                
+
                 // file path (native)
                 if let Some(path) = &f.path {
                     return std::fs::read_to_string(path).ok();
@@ -250,7 +360,7 @@ impl eframe::App for UnfurlApp {
                 egui::Align2::CENTER_CENTER,
                 "Drop JSON file",
                 egui::FontId::proportional(24.0),
-                dash_color
+                dash_color,
             );
         }
 

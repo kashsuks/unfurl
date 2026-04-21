@@ -1,4 +1,5 @@
 mod app;
+mod diff;
 mod persist;
 mod settings;
 mod theme;

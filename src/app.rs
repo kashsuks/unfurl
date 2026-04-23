@@ -92,7 +92,7 @@ impl eframe::App for UnfurlApp {
                     ui.heading("Unfurl");
                     ui.separator();
 
-                    if ui.button("Format ↵").clicked() {
+                    if ui.button("Format").clicked() {
                         self.format();
                     }
                     if ui.button("Clear").clicked() {
@@ -304,7 +304,7 @@ impl eframe::App for UnfurlApp {
                         None => {
                             ui.colored_label(
                                 egui::Color32::from_rgb(120, 120, 120),
-                                "Paste JSON on the left and press Format ↵",
+                                "Paste JSON on the left and press Format",
                             );
                         }
                     });

@@ -41,23 +41,37 @@ fn diff_values(key: Option<&str>, old: &Value, new: &Value) -> DiffNode {
         (Value::Object(old_map), Value::Object(new_map)) => {
             let mut children = Vec::new();
 
-            for (key, old_val) in old_map {
-                if let Some(new_val) = new_map.get(key) {
-                    children.push(diff_values(Some(key), old_val, new_val));
-                } else {
-                    children.push(DiffNode::Removed {
-                        key: Some(key.clone()),
-                        value: old_val.clone(),
-                    });
+            // collect all keys from both sides and preserve
+            // new_map order as the authoritative order
+            // and removed keys inserted at old position
+            let mut all_keys: Vec<&String> = Vec::new();
+            for key in new_map.keys() {
+                all_keys.push(key);
+            }
+            for key in old_map.keys() {
+                if !new_map.contains_key(key) {
+                    all_keys.push(key);
                 }
             }
 
-            for (key, new_val) in new_map {
-                if !old_map.contains_key(key) {
-                    children.push(DiffNode::Added {
-                        key: Some(key.clone()),
-                        value: new_val.clone(),
-                    });
+            for key in all_keys {
+                match (old_map.get(key), new_map.get(key)) {
+                    (Some(old_val), Some(new_val)) => {
+                        children.push(diff_values(Some(key), old_val, new_val));
+                    }
+                    (Some(old_val), None) => {
+                        children.push(DiffNode::Removed {
+                            key: Some(key.clone()),
+                            value: old_val.clone(),
+                        });
+                    }
+                    (None, Some(new_val)) => {
+                        children.push(DiffNode::Added {
+                            key: Some(key.clone()),
+                            value: new_val.clone(),
+                        });
+                    }
+                    (None, None) => {}
                 }
             }
 

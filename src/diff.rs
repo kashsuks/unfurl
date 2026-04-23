@@ -1,3 +1,8 @@
+/// This file handles all the code necessary for the
+/// Diff tree that compares two pieces of JSON Data
+/// It uses two seperate trees (one on the left and the other on the right)
+/// In order to compare and show differences between both files
+
 use eframe::egui;
 use serde_json::Value;
 
@@ -34,6 +39,25 @@ pub fn compute_diff(old: &Value, new: &Value) -> DiffNode {
     diff_values(None, old, new)
 }
 
+/// Shows the differences between the files based on additions and removals
+/// 
+/// # Arguments
+/// 
+/// - `key` (`Option<&str>`) - Key ie location of each value.
+/// - `old` (`&Value`) - Old removals.
+/// - `new` (`&Value`) - New additions.
+/// 
+/// # Returns
+/// 
+/// - `DiffNode` - A DiffNode represents all the changes of the JSON in a single section.
+/// 
+/// # Examples
+/// 
+/// ```
+/// use crate::...;
+/// 
+/// let _ = diff_values();
+/// ```
 fn diff_values(key: Option<&str>, old: &Value, new: &Value) -> DiffNode {
     let k = key.map(|s| s.to_string());
 
@@ -119,6 +143,8 @@ fn diff_values(key: Option<&str>, old: &Value, new: &Value) -> DiffNode {
 }
 
 pub fn render_diff_tree(ui: &mut egui::Ui, node: &DiffNode) {
+    // below are all the possible cases for data types in the tree
+    // and how to render them accordingly
     match node {
         DiffNode::Object { key, children } => {
             let label = key_prefix(key, "{...}");
@@ -220,6 +246,23 @@ fn format_leaf(key: &Option<String>, value: &Value) -> String {
     }
 }
 
+/// Strips the whitespace and formats data accordingly
+/// 
+/// # Arguments
+/// 
+/// - `value` (`&Value`) - Value of the data that is to be formatted.
+/// 
+/// # Returns
+/// 
+/// - `String` - Final formatted string.
+/// 
+/// # Examples
+/// 
+/// ```
+/// use crate::...;
+/// 
+/// let _ = format_value();
+/// ```
 fn format_value(value: &Value) -> String {
     match value {
         Value::String(s) => format!("\"{}\"", s),

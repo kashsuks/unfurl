@@ -1,3 +1,6 @@
+/// This file is responsible as the main entry point
+/// For both the web and native app UI
+
 mod app;
 mod diff;
 mod persist;

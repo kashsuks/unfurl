@@ -90,33 +90,38 @@ pub fn render_tree(
     key: Option<&str>,
     value: &Value,
     search: Option<&SearchNode>,
+    path: &str,
 ) {
     match value {
         Value::Object(map) => {
             let label = branch_label(key, "{...}", search);
-            egui::CollapsingHeader::new(label)
+            let response = egui::CollapsingHeader::new(label)
                 .default_open(search.map_or(true, |node| node.subtree_match))
                 .show(ui, |ui| {
                     for (index, (k, v)) in map.iter().enumerate() {
-                        render_tree(ui, Some(k), v, child_search(search, index));
+                        let child_path = format!("{}.{}", path, k);
+                        render_tree(ui, Some(k), v, child_search(search, index), &child_path);
                     }
                 });
+            response.header_response.on_hover_text(path);
         }
 
         Value::Array(arr) => {
             let label = branch_label(key, &format!("[{} items]", arr.len()), search);
-            egui::CollapsingHeader::new(label)
+            let response = egui::CollapsingHeader::new(label)
                 .default_open(search.map_or(true, |node| node.subtree_match))
                 .show(ui, |ui| {
                     for (i, v) in arr.iter().enumerate() {
                         let idx = i.to_string();
-                        render_tree(ui, Some(idx.as_str()), v, child_search(search, i));
+                        let child_path = format!("{}[{}]", path, i);
+                        render_tree(ui, Some(idx.as_str()), v, child_search(search, i), &child_path);
                     }
                 });
+            response.header_response.on_hover_text(path);
         }
 
         Value::String(s) => {
-            ui.horizontal(|ui| {
+            let row = ui.horizontal(|ui| {
                 key_part(ui, key, search);
                 value_part(
                     ui,
@@ -128,6 +133,7 @@ pub fn render_tree(
                     ui.ctx().copy_text(s.clone());
                 }
             });
+            row.response.on_hover_text(path);
         }
 
         Value::Number(n) => {

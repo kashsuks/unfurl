@@ -299,7 +299,7 @@ impl eframe::App for UnfurlApp {
                     .id_salt("tree_scroll")
                     .show(ui, |ui| match &self.parsed {
                         Some(value) => {
-                            render_tree(ui, None, value, self.search.as_ref());
+                            render_tree(ui, None, value, self.search.as_ref(), "$");
                         }
                         None => {
                             ui.colored_label(

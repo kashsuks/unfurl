@@ -418,7 +418,22 @@ impl UnfurlApp {
             .and_then(|value| (!query.is_empty()).then(|| SearchNode::build(None, value, query)));
     }
 }
-
+/// Renders the dashed lines for the drop file into editor feature
+/// 
+/// # Arguments
+/// 
+/// - `painter` (`&egui`) - The render component that draws the lines.
+/// - `dash_len` (`f32`) - Length of each dash.
+/// - `gap_len` (`f32`) - Spacing between each dash.
+/// - `stroke` (`egui`) - Process to paint the dash.
+/// 
+/// # Examples
+/// 
+/// ```
+/// use crate::...;
+/// 
+/// let _ = draw_dashed_rect();
+/// ```
 fn draw_dashed_rect(
     painter: &egui::Painter,
     rect: egui::Rect,

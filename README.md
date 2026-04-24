@@ -46,3 +46,7 @@ trunk build --release --public-url /
 ```
 
 Deploy whatever builds to the /dist
+
+## AI Usage
+
+AI tools such as Claude and Codex were used in the making of this project mainly for fixing bugs such as the theme storage

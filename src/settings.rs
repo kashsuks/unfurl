@@ -1,3 +1,6 @@
+/// This file is responsible in defining
+// Local (web) and Native storage structure for theme data
+
 use eframe::egui;
 
 use crate::theme::Theme;

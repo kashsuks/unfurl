@@ -1,3 +1,6 @@
+/// This file is responsible for defining the colour scheme
+/// For the different themes that are present in the app
+
 use eframe::egui;
 
 #[derive(Clone, Copy, Debug, PartialEq, Default)]

@@ -1,3 +1,6 @@
+/// This file is responsible for calcuating the length parameters of the tree
+/// Uses DFS in order to find the depth of a given branch in the tree.
+
 use std::f32;
 
 use eframe::egui;
@@ -31,6 +34,24 @@ fn count_nodes(value: &Value) -> usize {
     }
 }
 
+/// Finds out the depth of a given tree in the graph via DFS
+/// 
+/// # Arguments
+/// 
+/// - `value` (`&Value`) - The value of the parent node for the tree.
+/// - `current` (`usize`) - The current value in the tree.
+/// 
+/// # Returns
+/// 
+/// - `usize` - A value of the depth of the tree.
+/// 
+/// # Examples
+/// 
+/// ```
+/// use crate::...;
+/// 
+/// let _ = max_depth();
+/// ```
 fn max_depth(value: &Value, current: usize) -> usize {
     match value {
         Value::Object(map) => map
@@ -244,8 +265,8 @@ impl eframe::App for UnfurlApp {
                     return;
                 }
 
-                let a = serde_json::from_str::<Value>(&self.input);
-                let b = serde_json::from_str::<Value>(&self.diff_input_b);
+                let a = serde_json::from_str::<Value>(&self.input); // diff input section a
+                let b = serde_json::from_str::<Value>(&self.diff_input_b); // diff input section b
 
                 match (a, b) {
                     (Ok(a), Ok(b)) => {
@@ -396,7 +417,7 @@ impl UnfurlApp {
                 self.parsed = None;
                 self.stats = None;
                 self.search = None;
-                self.error = Some(format!("Invalid JSON: {e}"));
+                self.error = Some(format!("Invalid JSON: {e}")); // changed from the default Err message
             }
         }
     }

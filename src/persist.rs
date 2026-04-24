@@ -1,3 +1,6 @@
+/// Responsible for local and web storage
+/// Used for theme saving and processing
+
 use crate::theme::Theme;
 
 const KEY: &str = "unfurl_theme";
@@ -5,6 +8,7 @@ const KEY: &str = "unfurl_theme";
 pub fn save_theme(theme: Theme) {
     let s = theme.label();
 
+    // native storage
     #[cfg(not(target_arch = "wasm32"))]
     {
         if let Some(path) = config_path()  {
@@ -12,6 +16,7 @@ pub fn save_theme(theme: Theme) {
         }
     }
 
+    // web storage
     #[cfg(target_arch = "wasm32")]
     {
         if let Some(storage) = web_storage() {
@@ -21,6 +26,7 @@ pub fn save_theme(theme: Theme) {
 }
 
 pub fn load_theme() -> Theme {
+    // native storage
     #[cfg(not(target_arch = "wasm32"))]
     {
         if let Some(path) = config_path() {
@@ -30,6 +36,7 @@ pub fn load_theme() -> Theme {
         }
     }
 
+    // web storage
     #[cfg(target_arch = "wasm32")]
     {
         if let Some(storage) = web_storage() {

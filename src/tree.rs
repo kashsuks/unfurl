@@ -1,3 +1,6 @@
+/// This file is responsible for search and parsing operations
+/// For the main JSON file tree
+
 use eframe::egui;
 use serde_json::Value;
 
